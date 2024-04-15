@@ -1,4 +1,3 @@
-#[derive(Debug)]
 pub struct Todo {
     pub id: usize,
     pub title: String,
@@ -10,21 +9,6 @@ pub struct Todo {
 /// _In this version we still need to pass todos vector as 2nd parameter_
 pub fn add_todo(todo: Todo, todos: &mut Vec<Todo>) {
     todos.push(todo);
-}
-
-/// Print the list of todo item available
-/// `[x]` means done
-pub fn list_todo(todos: &Vec<Todo>) {
-    if todos.len() == 0 {
-        println!("Nothing here. Lets start the day!!");
-        return;
-    }
-
-    println!("Your todolist:");
-    for todo in todos {
-        let is_done = if todo.done { "x" } else { "_" };
-        println!("[{}] {}", is_done, todo.title);
-    }
 }
 
 /// Toggle todo status by id
@@ -63,6 +47,7 @@ pub fn remove_done(todos: Vec<Todo>) -> Vec<Todo> {
     return todos;
 }
 
+/// Remove todo by index
 pub fn remove_todo(idx: usize, todos: &mut Vec<Todo>) {
     todos.remove(idx);
 }

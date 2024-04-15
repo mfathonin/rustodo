@@ -1,43 +1,71 @@
-use crate::todo::{get_next_index, list_todo, remove_todo, toggle_todo, Todo};
+use console::style;
+use dialoguer::{MultiSelect, Select};
+
+use crate::todo::{add_todo, get_next_index, remove_todo, toggle_todo, Todo};
+
+/// Print the list of todo item available
+/// `[x]` means done
+pub fn list_todo(todos: &Vec<Todo>) {
+    if todos.len() == 0 {
+        println!(
+            "{}",
+            style("Nothing here. Lets start the day!!").green().bold()
+        );
+        return;
+    }
+
+    println!("{}", style("Your todo list:").green().bold());
+    for todo in todos {
+        if todo.done {
+            println!("  [x] {}", style(&todo.title).strikethrough());
+        } else {
+            println!("  [_] {}", todo.title);
+        }
+    }
+}
 
 /// Display apps interface
-pub fn show_menus(todos: &Vec<Todo>) -> u8 {
+pub fn show_menus(todos: &mut Vec<Todo>) -> u8 {
+    let options = [
+        "Toggle todo list",
+        "Sort",
+        "Remove done items",
+        "Delete todo",
+    ];
     list_todo(&todos);
-    println!("\nOptions:");
-    println!("1. Add todo list");
-    println!("2. Toggle todo list");
-    println!("3. Sort");
-    println!("4. Remove done items");
-    println!("5. Delete todo");
-
-    println!("\nPlease select your options: (0 for exit)");
+    println!("\n{}", style("Options:").bold().cyan());
+    for (id, op) in options.iter().enumerate() {
+        println!("  {}. {}", style(id + 1).cyan(), op);
+    }
+    println!("\nAdd new task or type option number (`0` for exit)");
     let mut option = String::new();
     std::io::stdin()
         .read_line(&mut option)
         .expect("Error read line");
     let option: u8 = match option.trim().parse() {
         Ok(op) => op,
-        Err(_) => 0,
+        Err(_) => {
+            let retry: u8 = option.len() as u8 + 1;
+
+            if option.trim() == "" {
+                return retry;
+            }
+
+            let title = option.trim().to_string();
+            let id = get_next_index(todos);
+            let todo = Todo {
+                id,
+                title,
+                done: false,
+            };
+
+            add_todo(todo, todos);
+
+            retry
+        }
     };
 
     return option;
-}
-
-pub fn add_todo(todos: &Vec<Todo>) -> Todo {
-    println!("New todo item:");
-    let mut title = String::new();
-    std::io::stdin()
-        .read_line(&mut title)
-        .expect("Error read todo title");
-    let title = title.trim().to_string();
-
-    let id = get_next_index(todos);
-
-    return Todo {
-        id,
-        title,
-        done: false,
-    };
 }
 
 pub fn mark_todo(todos: &mut Vec<Todo>) {
@@ -45,23 +73,19 @@ pub fn mark_todo(todos: &mut Vec<Todo>) {
         return;
     }
 
-    loop {
-        list_todo(todos);
-        println!("\nSelect todo by index (start from 0):");
-        let mut idx = String::new();
-        std::io::stdin()
-            .read_line(&mut idx)
-            .expect("Error reading index");
-        let idx: usize = idx.trim().parse().expect("Error parsing index");
+    let items = todos
+        .iter()
+        .map(|x| format!("[{}] {}", if x.done { "x" } else { "_" }, x.title))
+        .collect::<Vec<String>>();
 
-        if idx >= todos.len() {
-            println!("Out off scope");
-        } else {
-            toggle_todo(idx, todos);
+    let selected = Select::new()
+        .with_prompt(style("Your todo list").green().bold().to_string())
+        .items(&items)
+        .default(0)
+        .interact()
+        .unwrap();
 
-            break;
-        }
-    }
+    toggle_todo(selected, todos);
 }
 
 pub fn delete_todo(todos: &mut Vec<Todo>) {
@@ -69,20 +93,20 @@ pub fn delete_todo(todos: &mut Vec<Todo>) {
         return;
     }
 
-    loop {
-        list_todo(&todos);
-        println!("\nSelect todo by index (start from 0):");
-        let mut idx = String::new();
-        std::io::stdin()
-            .read_line(&mut idx)
-            .expect("Error reading index");
-        let idx: usize = idx.trim().parse().expect("Error parsing index");
+    let items = todos
+        .iter()
+        .map(|x| format!("{}", x.title))
+        .collect::<Vec<String>>();
 
-        if idx >= todos.len() {
-            println!("Out of scope");
-        } else {
-            remove_todo(idx, todos);
-            break;
-        }
+    let mut idxs = MultiSelect::new()
+        .with_prompt(style("Your todo list").green().bold().to_string())
+        .items(&items)
+        .interact()
+        .unwrap();
+
+    idxs.reverse();
+
+    for idx in idxs {
+        remove_todo(idx, todos);
     }
 }
