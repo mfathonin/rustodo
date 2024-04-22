@@ -2,35 +2,37 @@ mod todo;
 mod todo_cli;
 
 use console::Term;
-use todo::{remove_done, sort_todo};
+use todo::TodoCollection;
 
 fn main() {
     let term = Term::stdout();
 
-    let mut todos = Vec::new();
+    let mut todo_collection = TodoCollection::new();
 
-    let _ = term.clear_screen();
+    clear_screen(&term);
 
-    let mut option = todo_cli::show_menus(&mut todos);
+    let mut opt = todo_cli::show_menus(&mut todo_collection);
 
     loop {
-        if option == 0 {
+        if opt == 0 {
             break;
-        }
+        };
 
-        let _ = term.clear_screen();
-        match option {
-            1 => todo_cli::mark_todo(&mut todos),
-            2 => {
-                sort_todo(&mut todos);
-            }
-            3 => todos = remove_done(todos),
-            4 => todo_cli::delete_todo(&mut todos),
+        clear_screen(&term);
+        match opt {
+            1 => todo_cli::mark_todo(&mut todo_collection),
+            2 => todo_collection.sort_todo(),
+            3 => todo_collection.remove_done(),
+            4 => todo_cli::delete_todo(&mut todo_collection),
             0 => break,
             _ => println!("\nWrong options"),
-        }
+        };
 
-        let _ = term.clear_screen();
-        option = todo_cli::show_menus(&mut todos);
+        clear_screen(&term);
+        opt = todo_cli::show_menus(&mut todo_collection);
     }
+}
+
+fn clear_screen(term: &Term) {
+    let _ = term.clear_screen();
 }
