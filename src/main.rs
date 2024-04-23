@@ -1,13 +1,14 @@
 mod schema;
 mod todo;
 mod todo_operator;
-
-use std::env;
-use todo_operator::TodoOperator;
+mod tools;
 
 use console::Term;
 use diesel::{Connection, PgConnection};
 use dotenvy::dotenv;
+use std::env;
+
+use todo_operator::TodoOperator;
 
 fn main() {
     dotenv().ok();
@@ -16,12 +17,17 @@ fn main() {
     let connections = PgConnection::establish(&database_url)
         .unwrap_or_else(|_| panic!("Error connection to {}", database_url));
 
-    let term = Term::stdout();
-
-    // clear_screen(&term);
+    let args: Vec<String> = env::args().collect();
 
     let mut todo_op = TodoOperator::new(connections);
 
+    if args.len() > 1 {
+        tools::tools(&args, &mut todo_op);
+        return;
+    }
+
+    let term = Term::stdout();
+    clear_screen(&term);
     let mut opt = todo_op.show_menus();
 
     loop {

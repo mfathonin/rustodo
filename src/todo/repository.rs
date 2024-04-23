@@ -36,13 +36,11 @@ pub fn toggle_todo(todo_id: &i32, conn: &mut PgConnection) {
         None => panic!("No todo with id: {} found", todo_id),
     };
 
-    let updated_todo = diesel::update(todos.find(todo_id))
+    diesel::update(todos.find(todo_id))
         .set(done.eq(!cur_todo.done))
         .returning(Todo::as_returning())
         .get_result(conn)
         .expect("Error update todo");
-
-    println!("{} is {}", updated_todo.title, updated_todo.done);
 }
 
 pub fn remove_todo(todo_id: &i32, conn: &mut PgConnection) {
