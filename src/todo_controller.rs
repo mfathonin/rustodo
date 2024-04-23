@@ -6,24 +6,24 @@ use console::style;
 use dialoguer::{MultiSelect, Select};
 use diesel::PgConnection;
 
-pub struct TodoController {
-    conn: PgConnection,
+pub struct TodoController<'a> {
+    conn: &'a mut PgConnection,
 }
 
-impl TodoController {
-    pub fn new(conn: PgConnection) -> Self {
+impl<'a> TodoController<'a> {
+    pub fn new(conn: &'a mut PgConnection) -> Self {
         TodoController { conn }
     }
 
     pub fn add_todos(&mut self, todos_title: &[String]) {
         for title in todos_title {
             let new_todo = NewTodo::from(title.trim());
-            repo::add_todo(&new_todo, &mut self.conn);
+            repo::add_todo(&new_todo, self.conn);
         }
     }
 
     pub fn print_with_id(&mut self) {
-        let todos = repo::get_todos(&mut self.conn);
+        let todos = repo::get_todos(self.conn);
 
         if todos.len() == 0 {
             println!("{}", style("Nothing here\n").green().bold());
@@ -45,7 +45,7 @@ impl TodoController {
     /// Print the list of todo item available
     /// `[x]` means done
     pub fn list_todo(&mut self) {
-        let todos = repo::get_todos(&mut self.conn);
+        let todos = repo::get_todos(self.conn);
         if todos.len() == 0 {
             println!(
                 "{}",
@@ -84,7 +84,7 @@ impl TodoController {
 
                 let title = option.trim();
                 let new_todo = NewTodo::from(title);
-                repo::add_todo(&new_todo, &mut self.conn);
+                repo::add_todo(&new_todo, self.conn);
 
                 retry
             }
@@ -95,12 +95,12 @@ impl TodoController {
 
     pub fn toggle_todo(&mut self, ids: Vec<i32>) {
         for id in ids {
-            repo::toggle_todo(&id, &mut self.conn);
+            repo::toggle_todo(&id, self.conn);
         }
     }
 
     pub fn mark_todo(&mut self) {
-        let todos = repo::get_todos(&mut self.conn);
+        let todos = repo::get_todos(self.conn);
         if todos.len() == 0 {
             return;
         }
@@ -121,17 +121,17 @@ impl TodoController {
     }
 
     pub fn remove_done(&mut self) {
-        repo::clean_todo(&mut self.conn);
+        repo::clean_todo(self.conn);
     }
 
     pub fn delete_todo_by_id(&mut self, ids: Vec<i32>) {
         for id in ids {
-            repo::remove_todo(&id, &mut self.conn);
+            repo::remove_todo(&id, self.conn);
         }
     }
 
     pub fn delete_todo(&mut self) {
-        let todos: Vec<Todo> = repo::get_todos(&mut self.conn);
+        let todos: Vec<Todo> = repo::get_todos(self.conn);
         if todos.len() == 0 {
             return;
         }
@@ -151,7 +151,7 @@ impl TodoController {
 
         for idx in idxs {
             let id = todos[idx].id;
-            repo::remove_todo(&id, &mut self.conn);
+            repo::remove_todo(&id, self.conn);
         }
     }
 }
