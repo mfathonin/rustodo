@@ -1,8 +1,8 @@
 use console::style;
 
-use crate::todo_operator::TodoOperator;
+use crate::todo_controller::TodoController;
 
-pub fn tools(args: &Vec<String>, todo_op: &mut TodoOperator) {
+pub fn tools(args: &Vec<String>, todo_op: &mut TodoController) {
     let cmd = &args[1];
 
     match cmd.trim() {

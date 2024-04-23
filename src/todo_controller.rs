@@ -6,13 +6,13 @@ use console::style;
 use dialoguer::{MultiSelect, Select};
 use diesel::PgConnection;
 
-pub struct TodoOperator {
+pub struct TodoController {
     conn: PgConnection,
 }
 
-impl TodoOperator {
+impl TodoController {
     pub fn new(conn: PgConnection) -> Self {
-        TodoOperator { conn }
+        TodoController { conn }
     }
 
     pub fn add_todos(&mut self, todos_title: &[String]) {
