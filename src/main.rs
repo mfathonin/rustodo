@@ -15,7 +15,7 @@ fn main() {
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL env variable not set");
     let connections = PgConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connection to {}", database_url));
+        .unwrap_or_else(|_| panic!("Error connection to the DB (postgres).\nPlease check your `DATABASE_URL` environment variable"));
 
     let args: Vec<String> = env::args().collect();
 
